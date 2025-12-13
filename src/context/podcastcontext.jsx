@@ -1,136 +1,145 @@
-import React, { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { fetchPodcasts } from "../api/fetchPodcasts";
 
 /**
- * @typedef Podcast
- * @property {number} id - Unique identifier
- * @property {string} title - Podcast title
- * @property {string} updated - Last updated ISO date string
- * @property {number[]} genres - Array of genre IDs
- * @property {string} image - URL to podcast artwork
- * @property {number} seasons - Number of seasons
+ * @typedef {Object} Podcast
+ * @property {string} id
+ * @property {string} title
+ * @property {number[]} genres
+ * @property {string} updated
  */
-/**
- * Sorting options available to the user for viewing podcasts.
- * @type {{key: string, label: string}[]}
- */
-export const SORT_OPTIONS = [
-  { key: "default", label: "Default" },
-  { key: "date-desc", label: "Newest" },
-  { key: "date-asc", label: "Oldest" },
-  { key: "title-asc", label: "Title A → Z" },
-  { key: "title-desc", label: "Title Z → A" },
-];
 
 /**
- * React context for sharing podcast state across components.
- * Must be used within a <PodcastProvider>.
+ * PodcastContext provides all podcast data and UI state
+ * (search, filter, sort, pagination) in a single source of truth.
  */
-export const PodcastContext = createContext();
+const PodcastContext = createContext(null);
 
 /**
- * PodcastProvider component wraps children in a context with state for
- * searching, sorting, filtering, and paginating podcast data.
- *
- * @param {{children: React.ReactNode, initialPodcasts: Podcast[]}} props
- * @returns {JSX.Element}
+ * Hook to access PodcastContext safely.
+ * @returns {Object}
  */
-export function PodcastProvider({ children, initialPodcasts }) {
-  const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState("date-desc");
-  const [genre, setGenre] = useState("all");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+export function usePodcastContext() {
+  const context = useContext(PodcastContext);
+  if (!context) {
+    throw new Error("usePodcastContext must be used inside PodcastProvider");
+  }
+  return context;
+}
 
-  /**
-   * Dynamically calculate how many cards can fit on screen.
-   * Sets a fixed 10 cards for tablet and smaller screens.
-   */
+/**
+ * PodcastProvider
+ * Fetches podcast data and manages all UI-related state.
+ */
+export function PodcastProvider({ children }) {
+  /** -----------------------------
+   * RAW DATA
+   * ----------------------------- */
+  const [podcasts, setPodcasts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  /** -----------------------------
+   * UI STATE
+   * ----------------------------- */
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [sortOption, setSortOption] = useState("newest"); // newest | az | za
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 12;
+
+  /** -----------------------------
+   * FETCH DATA
+   * ----------------------------- */
   useEffect(() => {
-    const calculatePageSize = () => {
-      const screenW = window.innerWidth;
-
-      // Tablet and smaller (≤ 1024px): always show 10 cards
-      if (screenW <= 1024) {
-        setPageSize(10);
-        return;
+    async function loadPodcasts() {
+      try {
+        const data = await fetchPodcasts();
+        setPodcasts(data);
+      } catch (err) {
+        setError("Failed to load podcasts");
+      } finally {
+        setLoading(false);
       }
+    }
 
-      // For larger screens, calculate based on available width and 2 rows
-      const cardWidth = 260;
-      const maxRows = 2;
-      const columns = Math.floor(screenW / cardWidth);
-      const pageSize = columns * maxRows;
-
-      setPageSize(pageSize);
-    };
-
-    calculatePageSize();
-    window.addEventListener("resize", calculatePageSize);
-    return () => window.removeEventListener("resize", calculatePageSize);
+    loadPodcasts();
   }, []);
 
-  /**
-   * Applies the current search query, genre filter, and sort key
-   * to the list of podcasts.
-   * @returns {Podcast[]} Filtered and sorted podcasts
-   */
-  const applyFilters = () => {
-    let data = [...initialPodcasts];
+  /** -----------------------------
+   * DERIVED DATA PIPELINE
+   * Order matters: search → filter → sort → paginate
+   * ----------------------------- */
 
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      data = data.filter((p) => p.title.toLowerCase().includes(q));
-    }
+  const searchedPodcasts = useMemo(() => {
+    if (!searchTerm) return podcasts;
 
-    if (genre !== "all") {
-      data = data.filter((p) => p.genres.includes(Number(genre)));
-    }
+    return podcasts.filter((podcast) =>
+      podcast.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [podcasts, searchTerm]);
 
-    switch (sortKey) {
-      case "title-asc":
-        data.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case "title-desc":
-        data.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      case "date-asc":
-        data.sort((a, b) => new Date(a.updated) - new Date(b.updated));
-        break;
-      case "date-desc":
-        data.sort((a, b) => new Date(b.updated) - new Date(a.updated));
-        break;
-      case "default":
+  const filteredPodcasts = useMemo(() => {
+    if (selectedGenres.length === 0) return searchedPodcasts;
+
+    return searchedPodcasts.filter((podcast) =>
+      podcast.genres.some((genreId) => selectedGenres.includes(genreId))
+    );
+  }, [searchedPodcasts, selectedGenres]);
+
+  const sortedPodcasts = useMemo(() => {
+    const sorted = [...filteredPodcasts];
+
+    switch (sortOption) {
+      case "az":
+        return sorted.sort((a, b) => a.title.localeCompare(b.title));
+      case "za":
+        return sorted.sort((a, b) => b.title.localeCompare(a.title));
+      case "newest":
       default:
-        break;
+        return sorted.sort((a, b) => new Date(b.updated) - new Date(a.updated));
     }
+  }, [filteredPodcasts, sortOption]);
 
-    return data;
-  };
-  /** @type {Podcast[]} */
-  const filtered = applyFilters();
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const paged = filtered.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  const totalPages = Math.ceil(sortedPodcasts.length / ITEMS_PER_PAGE);
 
+  const paginatedPodcasts = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    return sortedPodcasts.slice(start, end);
+  }, [sortedPodcasts, currentPage]);
+
+  /** -----------------------------
+   * RESET RULES
+   * Search / filter changes reset page to 1
+   * ----------------------------- */
   useEffect(() => {
-    setPage(1);
-  }, [search, sortKey, genre]);
+    setCurrentPage(1);
+  }, [searchTerm, selectedGenres, sortOption]);
 
+  /** -----------------------------
+   * CONTEXT VALUE
+   * ----------------------------- */
   const value = {
-    search,
-    setSearch,
-    sortKey,
-    setSortKey,
-    genre,
-    setGenre,
-    page: currentPage,
-    setPage,
+    // data
+    podcasts,
+    loading,
+    error,
+
+    // ui state
+    searchTerm,
+    setSearchTerm,
+    selectedGenres,
+    setSelectedGenres,
+    sortOption,
+    setSortOption,
+    currentPage,
+    setCurrentPage,
+
+    // derived
+    paginatedPodcasts,
     totalPages,
-    podcasts: paged,
-    allPodcastsCount: filtered.length,
   };
 
   return (
