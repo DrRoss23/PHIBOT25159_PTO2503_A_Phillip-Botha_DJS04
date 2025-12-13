@@ -10,12 +10,22 @@ export default function GenreDropdown() {
 
   const [open, setOpen] = useState(false);
 
+  /**
+   * Toggles a genre ID in the selected genres list.
+   *
+   * @param {number} id Genre ID
+   */
   function toggleGenre(id) {
     setSelectedGenres((prev) =>
       prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
     );
   }
 
+  /**
+   * Generates dropdown label text based on selection.
+   *
+   * @returns {string}
+   */
   function getLabel() {
     if (selectedGenres.length === 0) return "Filter by genre";
     if (selectedGenres.length === 1) return genres[selectedGenres[0]];

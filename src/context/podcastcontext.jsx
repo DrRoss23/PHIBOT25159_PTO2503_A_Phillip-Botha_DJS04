@@ -2,8 +2,18 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { fetchPodcasts } from "../api/fetchPodcasts";
 import { GENRES } from "../data/genres";
 
+/**
+ * PodcastContext
+ * Centralised state container for podcast data and UI state.
+ */
 const PodcastContext = createContext(null);
 
+/**
+ * Custom hook for accessing PodcastContext safely.
+ *
+ * @returns {Object} Podcast context value
+ * @throws {Error} If used outside PodcastProvider
+ */
 export function usePodcastContext() {
   const context = useContext(PodcastContext);
   if (!context) {
@@ -12,31 +22,34 @@ export function usePodcastContext() {
   return context;
 }
 
+/**
+ * PodcastProvider
+ * Fetches podcast data and manages search, sorting,
+ * filtering, and load-more pagination state.
+ *
+ * @param {Object} props
+ * @param {React.ReactNode} props.children
+ */
 export function PodcastProvider({ children }) {
-  /* =========================
-     Raw data
-     ========================= */
-
+  /** Raw podcast data */
   const [podcasts, setPodcasts] = useState([]);
+
+  /** Loading and error state */
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* =========================
-     UI state
-     ========================= */
-
+  /** UI state */
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [sortOption, setSortOption] = useState("newest");
 
-  // Load More pagination
+  /** Load-more pagination state */
   const ITEMS_PER_LOAD = 4;
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
 
-  /* =========================
-     Fetch podcasts
-     ========================= */
-
+  /**
+   * Fetch podcasts on initial mount.
+   */
   useEffect(() => {
     async function loadPodcasts() {
       try {
@@ -52,10 +65,9 @@ export function PodcastProvider({ children }) {
     loadPodcasts();
   }, []);
 
-  /* =========================
-     Derived data pipeline
-     ========================= */
-
+  /**
+   * Apply search filtering.
+   */
   const searchedPodcasts = useMemo(() => {
     if (!searchTerm) return podcasts;
     return podcasts.filter((p) =>
@@ -63,6 +75,9 @@ export function PodcastProvider({ children }) {
     );
   }, [podcasts, searchTerm]);
 
+  /**
+   * Apply genre filtering.
+   */
   const filteredPodcasts = useMemo(() => {
     if (selectedGenres.length === 0) return searchedPodcasts;
 
@@ -71,6 +86,9 @@ export function PodcastProvider({ children }) {
     );
   }, [searchedPodcasts, selectedGenres]);
 
+  /**
+   * Apply sorting.
+   */
   const sortedPodcasts = useMemo(() => {
     const list = [...filteredPodcasts];
 
@@ -84,21 +102,19 @@ export function PodcastProvider({ children }) {
     }
   }, [filteredPodcasts, sortOption]);
 
+  /**
+   * Slice visible podcasts for load-more pagination.
+   */
   const visiblePodcasts = useMemo(() => {
     return sortedPodcasts.slice(0, visibleCount);
   }, [sortedPodcasts, visibleCount]);
 
-  /* =========================
-     Reset Load More on changes
-     ========================= */
-
+  /**
+   * Reset pagination when filter/search/sort changes.
+   */
   useEffect(() => {
     setVisibleCount(ITEMS_PER_LOAD);
   }, [searchTerm, selectedGenres, sortOption]);
-
-  /* =========================
-     Context value
-     ========================= */
 
   const value = {
     podcasts,

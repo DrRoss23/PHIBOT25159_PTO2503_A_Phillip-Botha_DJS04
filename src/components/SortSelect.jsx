@@ -1,17 +1,23 @@
 import { usePodcastContext } from "../context/PodcastContext";
 
 /**
- * Sort selector for podcast list.
+ * SortSelect
+ * Dropdown for selecting podcast sort order.
  */
 export default function SortSelect() {
   const { sortOption, setSortOption } = usePodcastContext();
 
+  /**
+   * Handles changes to the sort option.
+   *
+   * @param {React.ChangeEvent<HTMLSelectElement>} event
+   */
+  function handleChange(event) {
+    setSortOption(event.target.value);
+  }
+
   return (
-    <select
-      value={sortOption}
-      onChange={(e) => setSortOption(e.target.value)}
-      className="sort-select"
-    >
+    <select className="sort-select" value={sortOption} onChange={handleChange}>
       <option value="newest">Newest first</option>
       <option value="az">Title A–Z</option>
       <option value="za">Title Z–A</option>

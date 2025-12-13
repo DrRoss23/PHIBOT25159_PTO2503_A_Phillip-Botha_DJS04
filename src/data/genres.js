@@ -1,5 +1,6 @@
 /**
- * Maps genre IDs to human-readable titles.
+ * GENRES
+ * Maps genre IDs to human-readable genre names.
  */
 export const GENRES = {
   1: "Arts",

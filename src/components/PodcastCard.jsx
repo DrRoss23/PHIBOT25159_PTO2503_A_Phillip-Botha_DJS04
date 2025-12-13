@@ -1,8 +1,11 @@
 import { formatDate } from "../utils/formatDate";
 
 /**
- * Displays a single podcast preview card.
- * Pure presentational component.
+ * PodcastCard
+ * Displays a single podcast preview.
+ *
+ * @param {Object} props
+ * @param {Object} props.podcast Podcast data object
  */
 export default function PodcastCard({ podcast }) {
   return (

@@ -1,11 +1,11 @@
 /**
  * Formats an ISO date string into a readable date.
  *
- * @param {string} dateString - ISO date string from the API
- * @returns {string} Formatted date (e.g. "12 Jan 2024")
+ * @param {string} isoDate ISO date string
+ * @returns {string} Formatted date
  */
-export function formatDate(dateString) {
-  const date = new Date(dateString);
+export function formatDate(isoDate) {
+  const date = new Date(isoDate);
 
   return date.toLocaleDateString("en-GB", {
     day: "2-digit",

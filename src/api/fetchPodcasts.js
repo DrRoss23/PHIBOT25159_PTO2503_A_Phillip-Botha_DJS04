@@ -1,6 +1,8 @@
 /**
- * Fetches podcast preview data from the API.
- * @returns {Promise<Array<Object>>}
+ * Fetches podcast preview data from the public API.
+ *
+ * @returns {Promise<Array>} Array of podcast previews
+ * @throws {Error} If the request fails
  */
 export async function fetchPodcasts() {
   const response = await fetch("https://podcast-api.netlify.app");
@@ -9,6 +11,5 @@ export async function fetchPodcasts() {
     throw new Error("Failed to fetch podcasts");
   }
 
-  const data = await response.json();
-  return data;
+  return response.json();
 }

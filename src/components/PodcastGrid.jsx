@@ -2,7 +2,9 @@ import PodcastCard from "./PodcastCard";
 import { usePodcastContext } from "../context/PodcastContext";
 
 /**
- * Renders podcast cards and load-more pagination.
+ * PodcastGrid
+ * Renders visible podcast cards and handles
+ * "Load more" pagination.
  */
 export default function PodcastGrid() {
   const {
@@ -11,7 +13,12 @@ export default function PodcastGrid() {
     setVisibleCount,
     totalCount,
     itemsPerLoad,
+    loading,
+    error,
   } = usePodcastContext();
+
+  if (loading) return <p>Loading podcasts…</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <>
