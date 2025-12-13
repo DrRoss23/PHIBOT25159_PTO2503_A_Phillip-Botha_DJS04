@@ -17,16 +17,112 @@ body {
 }
 
 /* =========================
-   Podcast Grid
+   Controls (Search + Sort)
+   ========================= */
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 2rem 0;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  max-width: 420px;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.sort-select {
+  min-width: 150px;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9rem;
+}
+
+/* =========================
+   Controls – Mobile
+   ========================= */
+
+@media (max-width: 600px) {
+  .controls {
+    padding: 1rem;
+  }
+
+  .search-input {
+    max-width: none;
+  }
+}
+
+/* =========================
+   Podcast Grid (Base)
    ========================= */
 
 .podcast-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.75rem;
   padding: 2rem;
-  max-width: 1400px;
   margin: 0 auto;
+  max-width: 1200px;
+}
+
+/* =========================
+   Responsive Containers
+   ========================= */
+
+/* 1080p and small laptops */
+@media (min-width: 1280px) {
+  .podcast-grid,
+  .controls {
+    max-width: 1200px;
+  }
+}
+
+/* 1440p screens */
+@media (min-width: 1600px) {
+  .podcast-grid,
+  .controls {
+    max-width: 1500px;
+  }
+}
+
+/* 4K screens */
+@media (min-width: 2000px) {
+  .podcast-grid,
+  .controls {
+    max-width: 1800px;
+  }
+}
+
+/* =========================
+   Grid Breakpoints (Columns)
+   ========================= */
+
+@media (max-width: 1100px) {
+  .podcast-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 850px) {
+  .podcast-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .podcast-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* =========================
@@ -48,9 +144,9 @@ body {
 
 .podcast-card img {
   width: 100%;
-  display: block;
   aspect-ratio: 1 / 1;
   object-fit: cover;
+  display: block;
 }
 
 /* =========================
