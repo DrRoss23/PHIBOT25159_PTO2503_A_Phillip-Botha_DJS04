@@ -1,16 +1,15 @@
 /**
- * @function formatDate
- * Converts an ISO date string into a human-readable, localized date string.
- * Example output: "July 7, 2025".
+ * Formats an ISO date string into a readable date.
  *
- * @param {string} isoString - A valid ISO 8601 date string (e.g., "2025-07-07T12:34:56Z").
- * @returns {string} Formatted date string in the user's local language and format.
- **/
-export function formatDate(isoString) {
-  const date = new Date(isoString);
-  return date.toLocaleDateString(undefined, {
+ * @param {string} dateString - ISO date string from the API
+ * @returns {string} Formatted date (e.g. "12 Jan 2024")
+ */
+export function formatDate(dateString) {
+  const date = new Date(dateString);
+
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
     year: "numeric",
-    month: "long",
-    day: "numeric",
   });
 }
