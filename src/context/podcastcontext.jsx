@@ -2,15 +2,8 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { fetchPodcasts } from "../api/fetchPodcasts";
 import { GENRES } from "../data/genres";
 
-/**
- * PodcastContext provides all podcast data and UI state
- * (search, filter, sort, pagination) in a single source of truth.
- */
 const PodcastContext = createContext(null);
 
-/**
- * Hook to safely consume PodcastContext.
- */
 export function usePodcastContext() {
   const context = useContext(PodcastContext);
   if (!context) {
@@ -19,10 +12,6 @@ export function usePodcastContext() {
   return context;
 }
 
-/**
- * PodcastProvider
- * Fetches podcast data and manages all UI-related state.
- */
 export function PodcastProvider({ children }) {
   /* =========================
      Raw data
@@ -38,10 +27,11 @@ export function PodcastProvider({ children }) {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenres, setSelectedGenres] = useState([]);
-  const [sortOption, setSortOption] = useState("newest"); // newest | az | za
-  const [currentPage, setCurrentPage] = useState(1);
+  const [sortOption, setSortOption] = useState("newest");
 
-  const ITEMS_PER_PAGE = 12;
+  // Load More pagination
+  const ITEMS_PER_LOAD = 4;
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
 
   /* =========================
      Fetch podcasts
@@ -52,7 +42,7 @@ export function PodcastProvider({ children }) {
       try {
         const data = await fetchPodcasts();
         setPodcasts(data);
-      } catch (err) {
+      } catch {
         setError("Failed to load podcasts");
       } finally {
         setLoading(false);
@@ -64,52 +54,46 @@ export function PodcastProvider({ children }) {
 
   /* =========================
      Derived data pipeline
-     Order: search → filter → sort → paginate
      ========================= */
 
   const searchedPodcasts = useMemo(() => {
     if (!searchTerm) return podcasts;
-
-    return podcasts.filter((podcast) =>
-      podcast.title.toLowerCase().includes(searchTerm.toLowerCase())
+    return podcasts.filter((p) =>
+      p.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [podcasts, searchTerm]);
 
   const filteredPodcasts = useMemo(() => {
     if (selectedGenres.length === 0) return searchedPodcasts;
 
-    return searchedPodcasts.filter((podcast) =>
-      podcast.genres.some((genreId) => selectedGenres.includes(genreId))
+    return searchedPodcasts.filter((p) =>
+      p.genres.some((id) => selectedGenres.includes(id))
     );
   }, [searchedPodcasts, selectedGenres]);
 
   const sortedPodcasts = useMemo(() => {
-    const sorted = [...filteredPodcasts];
+    const list = [...filteredPodcasts];
 
     switch (sortOption) {
       case "az":
-        return sorted.sort((a, b) => a.title.localeCompare(b.title));
+        return list.sort((a, b) => a.title.localeCompare(b.title));
       case "za":
-        return sorted.sort((a, b) => b.title.localeCompare(a.title));
-      case "newest":
+        return list.sort((a, b) => b.title.localeCompare(a.title));
       default:
-        return sorted.sort((a, b) => new Date(b.updated) - new Date(a.updated));
+        return list.sort((a, b) => new Date(b.updated) - new Date(a.updated));
     }
   }, [filteredPodcasts, sortOption]);
 
-  const totalPages = Math.ceil(sortedPodcasts.length / ITEMS_PER_PAGE);
-
-  const paginatedPodcasts = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return sortedPodcasts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [sortedPodcasts, currentPage]);
+  const visiblePodcasts = useMemo(() => {
+    return sortedPodcasts.slice(0, visibleCount);
+  }, [sortedPodcasts, visibleCount]);
 
   /* =========================
-     Reset pagination when filters change
+     Reset Load More on changes
      ========================= */
 
   useEffect(() => {
-    setCurrentPage(1);
+    setVisibleCount(ITEMS_PER_LOAD);
   }, [searchTerm, selectedGenres, sortOption]);
 
   /* =========================
@@ -117,26 +101,23 @@ export function PodcastProvider({ children }) {
      ========================= */
 
   const value = {
-    // raw data
     podcasts,
     loading,
     error,
 
-    // ui state
     searchTerm,
     setSearchTerm,
     selectedGenres,
     setSelectedGenres,
     sortOption,
     setSortOption,
-    currentPage,
-    setCurrentPage,
 
-    // derived data
-    paginatedPodcasts,
-    totalPages,
+    visiblePodcasts,
+    visibleCount,
+    setVisibleCount,
+    totalCount: sortedPodcasts.length,
 
-    // static data
+    itemsPerLoad: ITEMS_PER_LOAD,
     genres: GENRES,
   };
 

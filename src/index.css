@@ -257,3 +257,28 @@ body {
   font-size: 0.85rem;
   color: #555555;
 }
+
+/* =========================
+   Load More Pagination
+   ========================= */
+
+.load-more-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0 3rem;
+}
+
+.load-more-btn {
+  padding: 0.7rem 1.4rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: #4da3ff;
+  color: #111;
+  font-weight: 500;
+}
+
+.load-more-btn:hover {
+  background: #2f8cff;
+}

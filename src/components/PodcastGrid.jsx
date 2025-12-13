@@ -1,24 +1,36 @@
-import { usePodcastContext } from "../context/PodcastContext";
 import PodcastCard from "./PodcastCard";
+import { usePodcastContext } from "../context/PodcastContext";
 
 /**
- * Renders a grid of podcast cards.
- * Data is fully prepared by context.
+ * Renders podcast cards and load-more pagination.
  */
 export default function PodcastGrid() {
-  const { paginatedPodcasts, loading, error } = usePodcastContext();
-
-  if (loading) return <p>Loading podcasts…</p>;
-  if (error) return <p>{error}</p>;
-  if (paginatedPodcasts.length === 0) {
-    return <p>No podcasts found.</p>;
-  }
+  const {
+    visiblePodcasts,
+    visibleCount,
+    setVisibleCount,
+    totalCount,
+    itemsPerLoad,
+  } = usePodcastContext();
 
   return (
-    <section className="podcast-grid">
-      {paginatedPodcasts.map((podcast) => (
-        <PodcastCard key={podcast.id} podcast={podcast} />
-      ))}
-    </section>
+    <>
+      <section className="podcast-grid">
+        {visiblePodcasts.map((podcast) => (
+          <PodcastCard key={podcast.id} podcast={podcast} />
+        ))}
+      </section>
+
+      {visibleCount < totalCount && (
+        <div className="load-more-wrapper">
+          <button
+            className="load-more-btn"
+            onClick={() => setVisibleCount((prev) => prev + itemsPerLoad)}
+          >
+            Load more
+          </button>
+        </div>
+      )}
+    </>
   );
 }
