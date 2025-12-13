@@ -1,13 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { fetchPodcasts } from "../api/fetchPodcasts";
-
-/**
- * @typedef {Object} Podcast
- * @property {string} id
- * @property {string} title
- * @property {number[]} genres
- * @property {string} updated
- */
+import { GENRES } from "../data/genres";
 
 /**
  * PodcastContext provides all podcast data and UI state
@@ -16,13 +9,12 @@ import { fetchPodcasts } from "../api/fetchPodcasts";
 const PodcastContext = createContext(null);
 
 /**
- * Hook to access PodcastContext safely.
- * @returns {Object}
+ * Hook to safely consume PodcastContext.
  */
 export function usePodcastContext() {
   const context = useContext(PodcastContext);
   if (!context) {
-    throw new Error("usePodcastContext must be used inside PodcastProvider");
+    throw new Error("usePodcastContext must be used within a PodcastProvider");
   }
   return context;
 }
@@ -32,16 +24,18 @@ export function usePodcastContext() {
  * Fetches podcast data and manages all UI-related state.
  */
 export function PodcastProvider({ children }) {
-  /** -----------------------------
-   * RAW DATA
-   * ----------------------------- */
+  /* =========================
+     Raw data
+     ========================= */
+
   const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /** -----------------------------
-   * UI STATE
-   * ----------------------------- */
+  /* =========================
+     UI state
+     ========================= */
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [sortOption, setSortOption] = useState("newest"); // newest | az | za
@@ -49,9 +43,10 @@ export function PodcastProvider({ children }) {
 
   const ITEMS_PER_PAGE = 12;
 
-  /** -----------------------------
-   * FETCH DATA
-   * ----------------------------- */
+  /* =========================
+     Fetch podcasts
+     ========================= */
+
   useEffect(() => {
     async function loadPodcasts() {
       try {
@@ -67,10 +62,10 @@ export function PodcastProvider({ children }) {
     loadPodcasts();
   }, []);
 
-  /** -----------------------------
-   * DERIVED DATA PIPELINE
-   * Order matters: search → filter → sort → paginate
-   * ----------------------------- */
+  /* =========================
+     Derived data pipeline
+     Order: search → filter → sort → paginate
+     ========================= */
 
   const searchedPodcasts = useMemo(() => {
     if (!searchTerm) return podcasts;
@@ -105,24 +100,24 @@ export function PodcastProvider({ children }) {
   const totalPages = Math.ceil(sortedPodcasts.length / ITEMS_PER_PAGE);
 
   const paginatedPodcasts = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    return sortedPodcasts.slice(start, end);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return sortedPodcasts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [sortedPodcasts, currentPage]);
 
-  /** -----------------------------
-   * RESET RULES
-   * Search / filter changes reset page to 1
-   * ----------------------------- */
+  /* =========================
+     Reset pagination when filters change
+     ========================= */
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedGenres, sortOption]);
 
-  /** -----------------------------
-   * CONTEXT VALUE
-   * ----------------------------- */
+  /* =========================
+     Context value
+     ========================= */
+
   const value = {
-    // data
+    // raw data
     podcasts,
     loading,
     error,
@@ -137,9 +132,12 @@ export function PodcastProvider({ children }) {
     currentPage,
     setCurrentPage,
 
-    // derived
+    // derived data
     paginatedPodcasts,
     totalPages,
+
+    // static data
+    genres: GENRES,
   };
 
   return (

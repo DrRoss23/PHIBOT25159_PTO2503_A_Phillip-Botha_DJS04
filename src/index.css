@@ -1,5 +1,5 @@
 /* =========================
-   Global Reset & Base
+   Global Reset & Safety
    ========================= */
 
 *,
@@ -8,8 +8,14 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* HARD STOP horizontal scroll */
+}
+
+body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   background-color: #1e1e1e;
@@ -17,31 +23,36 @@ body {
 }
 
 /* =========================
-   Controls (Search + Sort)
+   Controls Wrapper
+   ========================= */
+
+.controls-wrapper {
+  width: 100%;
+}
+
+/* =========================
+   Controls Row
    ========================= */
 
 .controls {
   display: flex;
-  gap: 1rem;
-  padding: 1.5rem 2rem 0;
+  gap: 0.75rem;
+  padding: 1.25rem;
   margin: 0 auto;
+  max-width: 1200px;
   align-items: center;
   justify-content: space-between;
-  max-width: 1200px;
+  flex-wrap: wrap; /* CRITICAL */
 }
+
+/* =========================
+   Search Input
+   ========================= */
 
 .search-input {
-  flex: 1;
-  min-width: 200px;
+  flex: 1 1 260px;
   max-width: 420px;
-  padding: 0.6rem 0.8rem;
-  border-radius: 6px;
-  border: none;
-  font-size: 0.9rem;
-}
-
-.sort-select {
-  min-width: 150px;
+  min-width: 220px;
   padding: 0.6rem 0.8rem;
   border-radius: 6px;
   border: none;
@@ -49,16 +60,87 @@ body {
 }
 
 /* =========================
-   Controls – Mobile
+   Sort Select
+   ========================= */
+
+.sort-select {
+  flex: 0 0 160px;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9rem;
+}
+
+/* =========================
+   Genre Dropdown
+   ========================= */
+
+.genre-dropdown {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.genre-toggle {
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: #ffffff;
+  color: #111;
+  white-space: nowrap;
+}
+
+/* Dropdown Menu */
+
+.genre-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 50;
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 0.5rem 1rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* =========================
+   Genre Options
+   ========================= */
+
+.genre-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #eaeaea;
+}
+
+.genre-option input {
+  accent-color: #4da3ff;
+}
+
+/* =========================
+   Mobile Controls
    ========================= */
 
 @media (max-width: 600px) {
   .controls {
-    padding: 1rem;
+    justify-content: flex-start;
   }
 
   .search-input {
-    max-width: none;
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  .genre-menu {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -69,17 +151,17 @@ body {
 .podcast-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.75rem;
+  gap: 1.5rem;
   padding: 2rem;
   margin: 0 auto;
   max-width: 1200px;
 }
 
 /* =========================
-   Responsive Containers
+   Grid Width Scaling
    ========================= */
 
-/* 1080p and small laptops */
+/* 1080p */
 @media (min-width: 1280px) {
   .podcast-grid,
   .controls {
@@ -87,7 +169,7 @@ body {
   }
 }
 
-/* 1440p screens */
+/* 1440p */
 @media (min-width: 1600px) {
   .podcast-grid,
   .controls {
@@ -95,7 +177,7 @@ body {
   }
 }
 
-/* 4K screens */
+/* 4K */
 @media (min-width: 2000px) {
   .podcast-grid,
   .controls {
@@ -104,7 +186,7 @@ body {
 }
 
 /* =========================
-   Grid Breakpoints (Columns)
+   Grid Breakpoints
    ========================= */
 
 @media (max-width: 1100px) {
@@ -142,8 +224,13 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
+/* =========================
+   Podcast Images
+   ========================= */
+
 .podcast-card img {
   width: 100%;
+  height: auto;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   display: block;
