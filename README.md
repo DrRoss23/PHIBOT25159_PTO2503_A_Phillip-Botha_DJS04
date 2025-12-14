@@ -145,7 +145,6 @@ http://localhost:5173
 - Clean, consistent naming conventions
 - Modular and reusable components
 - No unused code or dead logic
-- Easy to explain line-by-line during review
 
 ---
 
@@ -166,7 +165,7 @@ http://localhost:5173
 ## 📌 Notes
 
 This project was developed with a strong focus on **clarity, predictability, and reviewer readability**.  
-All architectural decisions were made intentionally and can be confidently explained during a technical review.
+All architectural decisions were made intentionally
 
 ---
 
